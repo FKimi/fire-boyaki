@@ -1,0 +1,168 @@
+/* 基本設定 */
+body {
+    margin: 0;    /* 外側の余白をなくす */
+    padding: 0;   /* 内側の余白をなくす */
+    text-align: left; /* 文字を左揃えに */
+    font-size: 18px;   /* 文字の大きさ */
+    background-color: hsl(0, 0%, 100%);  /* 背景を白に */
+}
+
+/* ヘッダー部分 */
+header {
+    background-color: hsl(0, 0%, 100%);  /* 背景を白に */
+    border-bottom: 1px solid #ccc;  /* 下に薄い線を引く */
+    text-align: center; /* 文字を中央に */
+}
+
+/* メインコンテンツ */
+main {
+    border-bottom: 1px solid #ccc;  /* 下に薄い線を引く */
+    position: relative;  /* 位置の基準点にする */
+}
+
+/* 入力フィールド */
+input, textarea {
+    margin: 3%;  /* 周りに余白 */
+    width: 94%;  /* 幅 */
+    font-size: 80%;  /* 文字の大きさ */
+    box-shadow: 3px 3px 3px 3px #555;  /* 影をつける */
+    border-radius: 5px;  /* 角を丸くする */
+}
+
+input {
+    height: 30px;  /* 一行入力用の高さ */
+}
+
+textarea {
+    height: 230px;  /* 複数行入力用の高さ */
+}
+
+/* メモ一覧エリア */
+#memo-list {
+    height: 40vh;  /* 画面の高さの~~%を使用（vh：ビューポートの高さ） */
+    overflow-y: scroll;  /* スクロール */
+    border: 1px solid #666;  /* 枠線をつける */
+    margin: 10px;  /* 外側の余白 */
+    border-radius: 5px;  /* 角を丸くする */
+}
+
+/* メモアイテム */
+.memo-item {
+    display: flex;  /* Flexboxで横並びに */
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    gap: 20px;  /* 要素間の間隔 */
+}
+
+.memo-content {
+    flex: 1;  /* 利用可能なスペースの1/2を使用 */
+}
+
+/* メモテキスト */
+.memo-item p {
+    font-size: 1.5rem;  /* 文字の大きさ */
+    height: auto;  /* 高さを自動調整 */
+    text-align: left;  /* 左揃え */
+    border-bottom: none;  /* 下線なし */
+    margin: 0; /* 余白調整 */
+    padding: 5px 0; 
+}
+
+.comment-section {
+    flex: 1;  /* 利用可能なスペースの1/2を使用 */
+    border-left: 2px solid #ccc;  /* 左側に区切り線 */
+    padding-left: 15px;
+    display: flex;
+    flex-direction: column;  /* 中身は縦並びに */
+}
+/* コメント入力欄 */
+.comment-input {
+    margin: 10px 0;  /* 上下の余白 */
+    width: 90%;  /* 親要素の90%の幅 */
+    font-size: 80%;
+    box-shadow: 2px 2px 2px 2px #555;
+    border-radius: 5px;
+    height: 30px;
+}
+
+/* コメントボタン */
+.comment-section button {
+    width: 90%;  /* 親要素の90%の幅 */
+    padding: 8px;
+    background-color: #fff;
+    border: 1px solid #666;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 80%;
+}
+
+.comment-section button:hover {
+    background: #0066CC;
+    color: #fff;
+}
+
+/* コメントリスト */
+.comments-list {
+    margin-top: 10px;
+    max-height: 150px;  /* コメントリストの最大高さ */
+    overflow-y: auto;  /* 必要に応じてスクロール */
+}
+
+/* 個別のコメント */
+.comment-item {
+    background-color: #f5f5f5;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 5px;
+    font-size: 80%;
+}
+
+/* コメントの日時 */
+.comment-item small {
+    color: #666;
+    display: block;
+    margin-top: 3px;
+    font-size: 70%;
+}
+
+/* レスポンシブ対応 */
+@media screen and (max-width: 768px) {
+    .memo-item {
+        flex-direction: column;  /* 画面が小さい時は縦並びに */
+    }
+    
+    .comment-section {
+        border-left: none;
+        border-top: 2px solid #ccc;
+        padding-left: 0;
+        padding-top: 15px;
+        margin-top: 15px;
+    }
+}
+
+/* ボタンリスト */
+ul {
+    padding: 0;  /* 内側の余白をなくす */
+    border-top: 1px solid #000;  /* 上に黒い線を引く */
+    display: table;  /* 表のような表示に */
+    table-layout: fixed;  /* 幅を均等に */
+    width: 100%;  /* 画面いっぱいに広げる */
+    margin: 0;  /* 外側の余白をなくす */
+    border-radius: 5px;  /* 角を丸くする */
+}
+
+li {
+    text-align: center;  /* 文字を中央に */
+    list-style-type: none;  /* 点を消す */
+    border: 1px solid #666;  /* 枠線をつける */
+    background-color: #FFF;  /* 背景を白に */
+    display: table-cell;  /* 横並びにする */
+    cursor: pointer;  /* マウスを載せると指マークに */
+    padding: 10px 0;  /* 上下に余白をつける */
+    border-radius: 5px;  /* 角を丸くする */
+}
+
+li:hover {
+    background: #0066CC;  /* 背景を青色に */
+    color: #fff;  /* 文字を白色に */
+}

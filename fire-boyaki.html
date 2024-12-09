@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <!-- 日本語を含む文字を正しく表示するための設定 -->
+  <meta charset="UTF-8">
+  <!-- スマートフォンでの表示を適切にする設定 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ぼやきシート</title>
+  <link rel="stylesheet" href="css/fire-boyaki.css">
+</head>
+
+<body>
+  <header>
+    <h1>ぼやきシート</h1>  
+    <h5> 思考実験の場です（使い方は自由：日々の日常、違和感、出来事や感想、発見など。思考の垂れ流し/自由メモetc）</h5>   
+  </header>
+
+  <main>  
+    <input type="text" id="input" placeholder="ぼやきを入力してね"> 
+    <div id="memo-list"></div> 
+    <ul>     
+        <li id="save">保存</li>
+        <li id="clear">消去</li>
+    </ul>
+  </main>  
+    <!-- JavaScriptを読み込む部分 -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import {
+            getFirestore,
+            collection,
+            addDoc,
+            getDocs,
+            deleteDoc,
+            doc,
+            updateDoc
+        } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCaQMRnBVPCef_1zdDTNvrFlwDBnsFnuVY",
+            authDomain: "boyakidefire.firebaseapp.com",
+            projectId: "boyakidefire",
+            storageBucket: "boyakidefire.firebasestorage.app",
+            messagingSenderId: "724476525899",
+            appId: "1:724476525899:web:a5b93ac077600b35ce7cce"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let memoList = [];
+
+        async function loadMemos() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "boyaki"));
+                memoList = [];
+                querySnapshot.forEach((doc) => {
+                    memoList.push({
+                        id: doc.id,
+                        ...doc.data(),
+                        comments: doc.data().comments || []
+                    });
+                });
+                displayMemos();
+            } catch (error) {
+                console.error("Error loading memos:", error);
+            }
+        }
+
+        function displayMemos() {
+            const memoArea = $("#memo-list");
+            memoArea.empty();
+            memoList.slice().reverse().forEach((memo) => {
+                memoArea.append(`
+                    <div class="memo-item">
+                        <p>${memo.title}</p>
+                        <small>${memo.date}</small>
+                        <div class="comment-section">
+                            <input type="text" class="comment-input" placeholder="コメントを入力" data-memo-id="${memo.id}">
+                            <button onclick="window.addCommentToMemo('${memo.id}')">コメントする</button>
+                            <div class="comments-list">
+                                ${(memo.comments || []).map(comment => `
+                                    <div class="comment-item">
+                                        <p>${comment.text}</p>
+                                        <small>${comment.date}</small>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        $("#save").on("click", async function () {
+            if (!$("#input").val()) {
+                alert("ぼやきを入力してください！");
+                return;
+            }
+
+            const newMemo = {
+                title: $("#input").val(),
+                date: new Date().toLocaleString(),
+                comments: []
+            };
+
+            try {
+                await addDoc(collection(db, "boyaki"), newMemo);
+                $("#input").val("");
+                alert("保存したよ！");
+                await loadMemos();
+            } catch (error) {
+                console.error("Error saving memo:", error);
+                alert("保存に失敗しました");
+            }
+        });
+
+        async function addComment(memoId, commentText) {
+            try {
+                const memoRef = doc(db, "boyaki", memoId);
+                const memo = memoList.find(m => m.id === memoId);
+                
+                const newComment = {
+                    text: commentText,
+                    date: new Date().toLocaleString()
+                };
+                
+                const updatedComments = [...(memo.comments || []), newComment];
+                
+                await updateDoc(memoRef, {
+                    comments: updatedComments
+                });
+                
+                await loadMemos();
+            } catch (error) {
+                console.error("Error adding comment:", error);
+                alert("コメントの保存に失敗しました");
+            }
+        }
+
+        window.addCommentToMemo = async function(memoId) {
+            const input = $(`.comment-input[data-memo-id="${memoId}"]`);
+            const commentText = input.val();
+            
+            if (!commentText) {
+                alert("コメントを入力してください");
+                return;
+            }
+            
+            await addComment(memoId, commentText);
+            input.val("");
+        };
+
+        $("#clear").on("click", async function () {
+            if (!confirm("本当にすべてのぼやきを消去しますか？")) return;
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "boyaki"));
+                const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
+                await Promise.all(deletePromises);
+                memoList = [];
+                $("#memo-list").empty();
+                $("#input").val("");
+                alert("削除しました");
+            } catch (error) {
+                console.error("Error deleting memos:", error);
+                alert("削除に失敗しました");
+            }
+        });
+
+        loadMemos();
+    </script>
+</body>
+</html>
