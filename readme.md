@@ -9,6 +9,8 @@
 ・ゆくゆくはクリエイターがぼやける機能として実装も（？）※Firebase活用バージョン
 
 # 3.DEMO　※デプロイが難しい場合のみ、動画やそのURLを記載
+https://drive.google.com/drive/u/3/folders/11lx1IsGkhGQ8gPF2VhMBOLx9A3U27gfj?ths=true
+
 # 4.作ったアプリケーション用のIDまたはPasswordがある場合
 # 5.工夫した点・こだわった点
 ・シンプルなUI
