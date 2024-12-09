@@ -13,7 +13,8 @@
 <body>
   <header>
     <h1>ぼやきシート</h1>  
-    <h5> 思考実験の場です（使い方は自由：日々の日常、違和感、出来事や感想、発見など。思考の垂れ流し/自由メモetc）</h5>   
+    <a>自由にぼやく場所です（使い方は自由！独り言、備忘録、最近の出来事、思考メモetc） </a>   
+    <!-- <h5> 思考実験の場です（使い方は自由：日々の日常、違和感、出来事や感想、発見など。思考の垂れ流し/自由メモetc）</h5>    -->
   </header>
 
   <main>  
@@ -28,17 +29,18 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     
     <script type="module">
+        // Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import {
-            getFirestore,
-            collection,
-            addDoc,
-            getDocs,
-            deleteDoc,
-            doc,
-            updateDoc
+            getFirestore,  // データベースに接続
+            collection,    // データの集合にアクセス
+            addDoc,       // 新しいデータを追加
+            getDocs,       // データを取得
+            deleteDoc,     // データを削除
+            doc,           // 特定のデータを参照
+            updateDoc      // データを更新
         } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
-
+        // Firebaseの設定情報
         const firebaseConfig = {
             apiKey: "AIzaSyCaQMRnBVPCef_1zdDTNvrFlwDBnsFnuVY",
             authDomain: "boyakidefire.firebaseapp.com",
@@ -47,44 +49,54 @@
             messagingSenderId: "724476525899",
             appId: "1:724476525899:web:a5b93ac077600b35ce7cce"
         };
-
+        // Firebaseの初期化とデータベース接続
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        let memoList = [];
-
+        let memoList = [];  // メモを保存する配列
+        // メモを読み込む関数
         async function loadMemos() {
             try {
+                // 'boyaki'コレクションから全てのデータを取得
                 const querySnapshot = await getDocs(collection(db, "boyaki"));
                 memoList = [];
+                // 取得した各データをmemoListに追加
                 querySnapshot.forEach((doc) => {
                     memoList.push({
-                        id: doc.id,
-                        ...doc.data(),
-                        comments: doc.data().comments || []
+                        id: doc.id,                    // ドキュメントID
+                        ...doc.data(),                 // ドキュメントの内容
+                        comments: doc.data().comments || []  // コメント（ない場合は空配列）
                     });
                 });
-                displayMemos();
+                displayMemos();  // メモを画面に表示
             } catch (error) {
-                console.error("Error loading memos:", error);
+                console.error("Error loading memos:", error);  // エラーがあれば表示
             }
         }
-
+        // メモを画面に表示する関数
         function displayMemos() {
-            const memoArea = $("#memo-list");
-            memoArea.empty();
-            memoList.slice().reverse().forEach((memo) => {
+            const memoArea = $("#memo-list");  // メモ表示エリアを取得
+            memoArea.empty();  // 表示エリアを一旦クリア
+            // メモを新しい順に表示
+            const sortedMemos = memoList.sort((a, b) => {
+                // 日付を比較して新しい順に並び替え
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                return dateB - dateA;  // 新しい日付が先に来るように
+            });
+            // 並び替えた配列を使って表示
+            sortedMemos.forEach((memo) => {
                 memoArea.append(`
-                    <div class="memo-item">
-                        <p>${memo.title}</p>
-                        <small>${memo.date}</small>
+                   <div class="memo-item">
+                        <p>${memo.title}</p>  
+                        <small>${memo.date}</small>  
                         <div class="comment-section">
-                            <input type="text" class="comment-input" placeholder="コメントを入力" data-memo-id="${memo.id}">
+                            <input type="text" class="comment-input" placeholder="自由コメント" data-memo-id="${memo.id}">
                             <button onclick="window.addCommentToMemo('${memo.id}')">コメントする</button>
                             <div class="comments-list">
                                 ${(memo.comments || []).map(comment => `
                                     <div class="comment-item">
-                                        <p>${comment.text}</p>
-                                        <small>${comment.date}</small>
+                                        <p>${comment.text}</p>  
+                                        <small>${comment.date}</small>  
                                     </div>
                                 `).join('')}
                             </div>
@@ -93,73 +105,80 @@
                 `);
             });
         }
-
+        // 保存
         $("#save").on("click", async function () {
+            // 入力が空の場合はアラート表示
             if (!$("#input").val()) {
-                alert("ぼやきを入力してください！");
+                alert("ぼやこう");
                 return;
             }
-
+            // 新しいメモのデータを作成
             const newMemo = {
-                title: $("#input").val(),
-                date: new Date().toLocaleString(),
-                comments: []
+                title: $("#input").val(),  // 入力された内容
+                date: new Date().toLocaleString(),  // 現在の日時
+                comments: []  // コメント用の空配列
             };
 
             try {
+                // データベースに新しいメモを追加
                 await addDoc(collection(db, "boyaki"), newMemo);
-                $("#input").val("");
+                $("#input").val("");  // 入力欄をクリア
                 alert("保存したよ！");
-                await loadMemos();
+                await loadMemos();  // メモを再読み込み
             } catch (error) {
                 console.error("Error saving memo:", error);
                 alert("保存に失敗しました");
             }
         });
-
+        // コメントを追加する関数
         async function addComment(memoId, commentText) {
             try {
+                // 対象のメモを参照
                 const memoRef = doc(db, "boyaki", memoId);
                 const memo = memoList.find(m => m.id === memoId);
-                
+                // 新しいコメントを作成
                 const newComment = {
                     text: commentText,
                     date: new Date().toLocaleString()
                 };
-                
+                // 既存のコメントに新しいコメントを追加
                 const updatedComments = [...(memo.comments || []), newComment];
-                
+                // データベースを更新
                 await updateDoc(memoRef, {
                     comments: updatedComments
                 });
                 
-                await loadMemos();
+                await loadMemos();  // メモを再読み込み
             } catch (error) {
                 console.error("Error adding comment:", error);
                 alert("コメントの保存に失敗しました");
             }
         }
-
+        // コメント追加のグローバル関数（HTML内のonclickから呼び出される）
         window.addCommentToMemo = async function(memoId) {
+            // コメント入力欄を取得
             const input = $(`.comment-input[data-memo-id="${memoId}"]`);
             const commentText = input.val();
-            
+            // 入力が空の場合はアラート表示
             if (!commentText) {
                 alert("コメントを入力してください");
                 return;
             }
-            
+            // コメントを追加して入力欄をクリア
             await addComment(memoId, commentText);
             input.val("");
         };
-
+        // 消去
         $("#clear").on("click", async function () {
             if (!confirm("本当にすべてのぼやきを消去しますか？")) return;
 
             try {
+                // すべてのメモを取得
                 const querySnapshot = await getDocs(collection(db, "boyaki"));
+                // 各メモを削除
                 const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
                 await Promise.all(deletePromises);
+                // 画面の表示をクリア
                 memoList = [];
                 $("#memo-list").empty();
                 $("#input").val("");
@@ -170,6 +189,7 @@
             }
         });
 
+        // 初期表示時にメモを読み込む
         loadMemos();
     </script>
 </body>
